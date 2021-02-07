@@ -153,6 +153,7 @@ dmypy.json
 # Gradle
 .idea/**/gradle.xml
 .idea/**/libraries
+.idea/
 
 # Gradle and Maven with auto-import
 # When using Gradle or Maven with auto-import, you should exclude module files,
@@ -199,3 +200,7 @@ fabric.properties
 
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
+
+data/
+Dataset/
+pretrained/
