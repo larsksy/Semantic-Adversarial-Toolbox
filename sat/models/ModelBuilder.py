@@ -1,8 +1,17 @@
-import sys
+"""
 
+Contains encoder and decoder model implementations for Semantic Segmentation Module
+
+https://github.com/smartcameras/ColorFool
+
+"""
+
+
+
+import sys
 import torch.nn as nn
 import torch
-from sat.util.batchnorm import SynchronizedBatchNorm2d as SyncBatchNorm
+from sat.models.util.batchnorm import SynchronizedBatchNorm2d as SyncBatchNorm
 import os
 import math
 
@@ -30,8 +39,8 @@ def resnet50(pretrained=False, **kwargs):
     return model
 
 class ResnetDilated(nn.Module):
-    def __init__(self, dilate_scale=8):
-        orig_resnet = resnet50(True)
+    def __init__(self, dilate_scale=8, num_classes=1000):
+        orig_resnet = ResNet(Bottleneck, [3, 4, 6, 3], num_classes=num_classes)
         super(ResnetDilated, self).__init__()
         from functools import partial
 
@@ -279,3 +288,13 @@ def load_url(url, model_dir='./pretrained', map_location=None):
         sys.stderr.write('Downloading: "{}" to {}\n'.format(url, cached_file))
         urlretrieve(url, cached_file)
     return torch.load(cached_file, map_location=map_location)
+
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        nn.init.kaiming_normal_(m.weight.data)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.fill_(1.)
+        m.bias.data.fill_(1e-4)
+    #elif classname.find('Linear') != -1:
+    #    m.weight.data.normal_(0.0, 0.0001)
