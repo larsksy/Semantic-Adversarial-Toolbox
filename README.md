@@ -105,4 +105,4 @@ adversarial dataset.
 Several demos are included in the repo under the 'examples' folder. 
 These examples should provide a decent introduction to using the toolbox. 
 When running any included demo file, make sure to set the repo root as 
-working directory, otherwise some file paths may be invalid. 
+working directory, otherwise some file paths may be invalid.

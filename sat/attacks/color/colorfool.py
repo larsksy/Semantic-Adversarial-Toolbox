@@ -107,15 +107,13 @@ class ColorFool(Attack):
                 X_lab_mask[:, :, 2] = np.clip(X_lab[:, :, 2] + noise_mask[:, :, 2], -margin, margin)
 
                 # Transfer from LAB to RGB
-                X_rgb_mask = color.lab2rgb(X_lab_mask)
+                X_rgb_mask = rgb_lab(X_lab_mask, to='rgb')
                 X_rgb_mask = torch.FloatTensor(nhwc_to_nchw(X_rgb_mask))
                 X_rgb_mask = X_rgb_mask.to(self.device).unsqueeze(dim=0)
 
                 if self.verify_and_add_adversarial(X_rgb_mask, image, label, generate_samples=generate_samples):
                     single_image(X_rgb_mask, data_format='nchw')
                     break
-
-            single_image(X_rgb_mask, data_format='nchw')
 
             return self.list
 
@@ -183,7 +181,7 @@ class ColorFool(Attack):
             segSize = (image.shape[1],
                        image.shape[2])
 
-            img_resized_list = get_resize_list(image, segment_sizes)
+            img_resized_list = self.get_resize_list(image, segment_sizes)
 
             with torch.no_grad():
                 scores = torch.zeros(1, 150, segSize[0], segSize[1])
@@ -226,27 +224,26 @@ class ColorFool(Attack):
 
         return water_masks, sky_masks, grass_masks, person_masks
 
+    def get_resize_list(self, image, segment_sizes):
+        """Gets list of resized images.
 
-def get_resize_list(image, segment_sizes):
-    """Gets list of resized images.
+        :param image: Image to resize.
+        :param segment_sizes: List of sizes to use.
 
-    :param image: Image to resize.
-    :param segment_sizes: List of sizes to use.
+        :return: List of resizes images.
+        """
+        normalize = transforms.Normalize(
+            mean=[0.40384353, 0.45469216, 0.48145765],
+            std=[0.00392157])
 
-    :return: List of resizes images.
-    """
-    normalize = transforms.Normalize(
-        mean=[0.40384353, 0.45469216, 0.48145765],
-        std=[0.00392157])
+        img = rgb_bgr(image.clone())
+        img = img.type(torch.float32)
+        img = normalize(img)
 
-    img = rgb_bgr(image.clone())
-    img = img.type(torch.float32)
-    img = normalize(img)
+        resized_list = list()
 
-    resized_list = list()
+        for size in segment_sizes:
+            trans = transforms.Resize(size)
+            resized_list.append(trans(img).unsqueeze(dim=0))
 
-    for size in segment_sizes:
-        trans = transforms.Resize(size)
-        resized_list.append(trans(img).unsqueeze(dim=0))
-
-    return resized_list
+        return resized_list
